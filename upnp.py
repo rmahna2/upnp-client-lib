@@ -1,6 +1,5 @@
 import sys
 import struct
-import IN
 from socket import *
 
 
@@ -76,6 +75,11 @@ class upnp():
 			except Exception, e:
 				print "WARNING: Failed to bind %s:%d: %s" , (self.ip,self.port,e)
 			try:
+#ref
+# https://stackoverflow.com/questions/603852/multicast-in-python
+# https://gist.github.com/quiver/4111310
+# https://svn.python.org/projects/python/trunk/Demo/sockets/mcast.py
+
 				self.ssock.setsockopt(IPPROTO_IP,IP_ADD_MEMBERSHIP,self.mreq)
 			except Exception, e:
 				print 'WARNING: Failed to join multicast group:',e
@@ -94,7 +98,20 @@ class upnp():
 			return False
 
 	#Listen for network data
+	def listen_from(self,size,socket):
+		if socket == False:
+			socket = self.ssock
+		try:
+			return socket.recvfrom(size)
+		except:
+			return False
+
+	#Listen for network data
 	def listen(self,size,socket):
+#		data = self.listen_from(size,socket)
+#		if data is not None:
+#			return data[1]
+#		return False
 		if socket == False:
 			socket = self.ssock
 		try:
@@ -178,8 +195,6 @@ class upnp():
 				for dataType in self.upnpRequest.iterkeys():				
 					self.upnpRequest[dataType] = self.parseHeader(data,dataType.upper())
 				returnVal = True
-
-
 		return returnVal
 
 	#Actively search for UPNP devices
@@ -198,22 +213,10 @@ class upnp():
 		while True:			
 			if self.findRequest(self.listen(1024,server), searchType, searchName): return True
 
-
-
-
-
 	#Passively listen for UPNP NOTIFY packets
 	def pcap(self, searchType, searchName):
 		print 'Entering passive search mode'
 
-		myip = '' #should be localhost
-			
-		#Have to create a new socket since replies will be sent directly to our IP, not the multicast IP
-		server = self.createNewListener(myip,self.port)
-		if server == False:
-			print 'Failed to bind port %d' % self.port
-			return
-
 		while True:			
-			if self.findRequest(self.listen(1024, server), searchType, searchName): return True
+			if self.findRequest(self.listen(1024, self.ssock), searchType, searchName): return True
 	
