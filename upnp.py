@@ -2,7 +2,6 @@ import sys
 import struct
 from socket import *
 
-
 class upnp():
 	mreq = None
 	port = None
@@ -28,29 +27,28 @@ class upnp():
 			"urn": None
 	}
 
-
-	def __init__(self, ip, port, iface):
+	def __init__(self, ip=None, port=None, iface=None):
 		if self.initSockets(ip,port,iface) == False:
 			print 'UPNP class initialization failed!'
 			sys.exit(1)
-
 	
-	def initSockets(self,ip,port,iface):
+	def initSockets(self,ip=None,port=None,iface=None):
 		#protective closing of code
-		if self.csock:
+		if self.csock is not None:
 			self.csock.close()
-		if self.ssock:
+		if self.ssock is not None:
 			self.ssock.close()
 
-		if iface != None:
+		if iface is not None:
+			#print("Have iface")
 			self.IFACE = iface
-		if not ip:
-                	ip = self.DEFAULT_IP
-                if not port:
-                	port = self.DEFAULT_PORT
-                self.port = port
-                self.ip = ip
-
+		if ip is None:
+			ip = self.DEFAULT_IP
+		if port is None:
+			port = self.DEFAULT_PORT
+		self.port = port
+		self.ip = ip
+		
 		try:
 			#This is needed to join a multicast group
 			#FIXME: failed to join multicast group if localare connection is gone.
@@ -65,7 +63,7 @@ class upnp():
 			self.ssock.setsockopt(SOL_SOCKET,SO_REUSEADDR,1)
 			
 			#Only bind to this interface
-			if self.IFACE != None:
+			if self.IFACE is not None:
 				print '\nBinding to interface',self.IFACE,'...\n'
 				self.ssock.setsockopt(SOL_SOCKET,IN.SO_BINDTODEVICE,struct.pack("%ds" % (len(self.IFACE)+1,), self.IFACE))
 				self.csock.setsockopt(SOL_SOCKET,IN.SO_BINDTODEVICE,struct.pack("%ds" % (len(self.IFACE)+1,), self.IFACE))
@@ -217,6 +215,15 @@ class upnp():
 	def pcap(self, searchType, searchName):
 		print 'Entering passive search mode'
 
+#		myip = '' #should be localhost
+#			
+#		#Have to create a new socket since replies will be sent directly to our IP, not the multicast IP
+#		server = self.createNewListener(myip,self.port)
+#		if server == False:
+#			print 'Failed to bind port %d' % self.port
+#			return
+
 		while True:			
+#			if self.findRequest(self.listen(1024, server), searchType, searchName): return True
 			if self.findRequest(self.listen(1024, self.ssock), searchType, searchName): return True
 	

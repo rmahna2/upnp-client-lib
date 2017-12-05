@@ -1,7 +1,7 @@
 from upnp import *
 
 def main():
-    client = upnp(None,None,None)
+    client = upnp()
     print "Entering main"	
     myip = '' #should be localhost
         
