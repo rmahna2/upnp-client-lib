@@ -93,34 +93,28 @@ class upnp():
 			newsock.bind((ip,port))
 			return newsock
 		except:
-			return False
+			return None
 
 	#Listen for network data
-	def listen_from(self,size,socket):
-		if socket == False:
+	def listen_from(self,size=1024,socket=None):
+		if socket is None:
 			socket = self.ssock
 		try:
 			return socket.recvfrom(size)
 		except:
-			return False
+			return None
 
 	#Listen for network data
-	def listen(self,size,socket):
-#		data = self.listen_from(size,socket)
-#		if data is not None:
-#			return data[1]
-#		return False
-		if socket == False:
-			socket = self.ssock
-		try:
-			return socket.recv(size)
-		except:
-			return False
+	def listen(self,size=1024,socket=None):
+		data = self.listen_from(size,socket)
+		if data is not None:
+			return data[0]
+		return None
 
 	#Send network data
-	def send(self,data,socket):
+	def send(self,data,socket=None):
 		#By default, use the client socket that's part of this class
-		if socket == False:
+		if socket is None:
 			socket = self.csock
 		try:
 			socket.sendto(data,(self.ip,self.port))
